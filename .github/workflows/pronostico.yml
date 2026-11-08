@@ -24,6 +24,25 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
+      - name: Verificar archivos del proyecto
+        run: |
+          faltan=0
+          for f in requirements.txt requirements-dev.txt pyproject.toml \
+                   src/pronostico_nogoya/__main__.py tests/conftest.py; do
+            if [ ! -f "$f" ]; then
+              echo "::error::Falta $f en la ra铆z del repositorio"
+              faltan=1
+            fi
+          done
+          if [ "$faltan" = 1 ]; then
+            echo "Contenido de la ra铆z del repositorio:"
+            ls -la
+            echo "Ubicaciones de pyproject.toml encontradas:"
+            find . -maxdepth 3 -name pyproject.toml -not -path "./.git/*" || true
+            echo "::error::Sube el CONTENIDO de la carpeta del proyecto a la RA脥Z del repositorio (no el ZIP ni una subcarpeta)."
+            exit 1
+          fi
+
       - name: Instalar Python 3.12
         uses: actions/setup-python@v5
         with:
