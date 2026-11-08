@@ -1,0 +1,3 @@
+⏳ *Aún no se generó ningún pronóstico.*
+🚫 No publicar este texto.
+▶️ Ejecuta el workflow "Pronóstico Nogoyá En Vivo" desde la pestaña Actions (Run workflow).
