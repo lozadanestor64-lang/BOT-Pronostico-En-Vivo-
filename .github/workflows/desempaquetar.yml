@@ -1,0 +1,64 @@
+name: Descomprimir proyecto (una sola vez)
+
+on:
+  workflow_dispatch:  # se ejecuta a mano desde la pestaña Actions
+
+permissions:
+  contents: write
+
+jobs:
+  descomprimir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Descomprimir el ZIP en la raíz (sin pisar archivos existentes)
+        run: |
+          python3 - <<'PY'
+          import pathlib, shutil, sys, zipfile
+
+          raiz = pathlib.Path(".")
+          zips = [p for p in raiz.glob("*.zip") if "nogoya" in p.name.lower()]
+          if not zips:
+              sys.exit("No encontré el ZIP del proyecto en la raíz del repositorio")
+          temporal = pathlib.Path("/tmp/proyecto")
+          with zipfile.ZipFile(zips[0]) as z:
+              z.extractall(temporal)
+          candidatos = sorted(temporal.rglob("pyproject.toml"), key=lambda p: len(p.parts))
+          if not candidatos:
+              sys.exit("El ZIP no contiene pyproject.toml")
+          base = candidatos[0].parent
+
+          copiados = 0
+          for origen in sorted(base.rglob("*")):
+              if origen.is_dir():
+                  continue
+              rel = origen.relative_to(base)
+              if rel.parts[0] == ".github" or "__pycache__" in rel.parts:
+                  continue
+              final = raiz / rel
+              if final.exists():
+                  readme_vacio = rel.as_posix() == "README.md" and final.stat().st_size < 200
+                  if not readme_vacio:
+                      print("Ya existe, se conserva:", rel)
+                      continue
+              final.parent.mkdir(parents=True, exist_ok=True)
+              shutil.copy2(origen, final)
+              copiados += 1
+              print("Copiado:", rel)
+          print(copiados, "archivos copiados desde", zips[0].name)
+          PY
+
+      - name: Guardar en el repositorio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No había nada nuevo que agregar."
+          else
+            git commit -m "Descomprimir proyecto desde el ZIP"
+            git push
+          fi
