@@ -16,7 +16,7 @@ android {
         targetSdk = 34
         // El workflow pasa -PversionCode=<número de ejecución> para poder actualizar la app.
         versionCode = (project.findProperty("versionCode") as String?)?.toIntOrNull() ?: 1
-        versionName = "1.1.0"
+        versionName = "1.2.0"
         buildConfigField("String", "URL_LATEST", "\"$urlLatest\"")
     }
 

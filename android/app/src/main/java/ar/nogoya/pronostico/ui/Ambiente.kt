@@ -13,6 +13,14 @@ fun ambienteDe(emoji: String): Ambiente = when {
     else -> Ambiente.DESCONOCIDO
 }
 
+/** "Hoy · Lun 09/11" -> "Hoy"; "Mañana · Mar 10/11" -> "Mañana"; "Mié 11/11" -> "Mié". */
+fun etiquetaCorta(dia: String?): String = when {
+    dia == null -> ""
+    dia.startsWith("Hoy") -> "Hoy"
+    dia.startsWith("Mañana") -> "Mañana"
+    else -> dia.substringBefore(" ")
+}
+
 fun emojiUv(nivel: String?): String = when (nivel) {
     "Bajo" -> "🟢"
     "Moderado" -> "🟡"

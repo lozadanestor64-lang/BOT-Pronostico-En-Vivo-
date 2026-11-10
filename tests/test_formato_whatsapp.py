@@ -1,5 +1,5 @@
 from dataclasses import replace
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from pronostico_nogoya.config import ZONA
 from pronostico_nogoya.emojis import clima, nivel_uv
@@ -22,15 +22,15 @@ def test_contiene_todas_las_secciones(crudo, ahora):
         "30°", "ST 30°", "🔺31°", "🔻17°", "48%", "Rocío 16°", "1012 hPa",
         "UV", "24 km", "17 km/h NE", "ráf. 32", "LLUVIA", "Prob. máx. 60%",
         "Chaparrones", "Tormentas", "05:52", "19:34", "PRÓXIMAS 24 H",
-        "Datos 15:00", "vigente hasta 18:05",
+        "Datos 15:00", "vigente hasta 18:05", "Fuente: Open-Meteo.com",
     ]:
         assert esperado in m, esperado
 
 
 def test_horarios_de_chaparrones_y_tormentas(crudo, ahora):
     m = mensaje(crudo, ahora)
-    assert "Chaparrones: 18h–19h (1,5 mm)" in m
-    assert "Tormentas: 19h–20h" in m
+    assert "Chaparrones: hoy 18h–19h (1,5 mm)" in m
+    assert "Tormentas: hoy 19h–20h" in m
 
 
 def test_filas_horizontales_de_tres_horas(crudo, ahora):
@@ -91,8 +91,32 @@ def test_vigencia_cruza_medianoche(crudo):
 def test_rangos_horas_unidos_y_separados():
     base = datetime(2026, 11, 7, 0, 0, tzinfo=ZONA)
     horas = [base + timedelta(hours=h) for h in (19, 20, 21, 23)]
-    assert _rangos_horas(horas) == "19h–21h, 23h"
-    assert _rangos_horas([]) == ""
+    assert _rangos_horas(horas, date(2026, 11, 7)) == "hoy 19h–21h, 23h"
+    assert _rangos_horas([], date(2026, 11, 7)) == ""
+
+
+def test_rangos_horas_se_cortan_a_medianoche_y_marcan_el_dia():
+    base = datetime(2026, 11, 7, 0, 0, tzinfo=ZONA)
+    horas = [base + timedelta(hours=h) for h in (22, 23, 24, 25)]
+    assert _rangos_horas(horas, date(2026, 11, 7)) == "hoy 22h–23h, mañana 00h–01h"
+    assert _rangos_horas(horas, date(2026, 11, 6)) == "mañana 22h–23h, 08/11 00h–01h"
+
+
+def test_las_24_horas_se_separan_por_dia(crudo, ahora):
+    lineas = mensaje(crudo, ahora).splitlines()
+    assert "*Hoy · Sáb 07/11*" in lineas
+    assert "*Mañana · Dom 08/11*" in lineas
+    assert lineas.index("*Hoy · Sáb 07/11*") < lineas.index("*Mañana · Dom 08/11*")
+    despues = lineas[lineas.index("*Mañana · Dom 08/11*") + 1]
+    assert despues.startswith("00h ")
+
+
+def test_cada_hora_aparece_una_sola_vez_y_son_24(crudo, ahora):
+    import re
+
+    celdas = re.findall(r"(\d{2})h \S+?(?:-?\d+°|s/d) (?:\d+%|–)", mensaje(crudo, ahora))
+    assert len(celdas) == 24
+    assert celdas[0] == "16" and celdas[-1] == "15"
 
 
 def test_emojis_dia_y_noche():

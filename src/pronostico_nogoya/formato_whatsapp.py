@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import math
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+from itertools import groupby
 
 from . import config
 from .emojis import CODIGOS_CHAPARRON, CODIGOS_TORMENTA, clima, nivel_uv
@@ -34,19 +35,42 @@ def _fecha_corta(dt: datetime) -> str:
     return f"{_DIAS[dt.weekday()]} {dt:%d/%m}"
 
 
-def _rangos_horas(horas: list[datetime]) -> str:
-    """Une horas consecutivas: [19, 20, 21] -> '19h–21h'."""
+def _etiqueta_dia(fecha: date, hoy: date) -> str:
+    if fecha == hoy:
+        return "hoy"
+    if fecha == hoy + timedelta(days=1):
+        return "mañana"
+    return f"{fecha:%d/%m}"
+
+
+def _titulo_dia(fecha: date, hoy: date) -> str:
+    base = f"{_DIAS[fecha.weekday()]} {fecha:%d/%m}"
+    if fecha == hoy:
+        return f"Hoy · {base}"
+    if fecha == hoy + timedelta(days=1):
+        return f"Mañana · {base}"
+    return base
+
+
+def _rangos_horas(horas: list[datetime], hoy: date) -> str:
+    """Une horas consecutivas del mismo día y marca el día: 'hoy 19h–21h, 23h, mañana 00h–01h'."""
     if not horas:
         return ""
     tramos: list[list[datetime]] = [[horas[0], horas[0]]]
     for h in horas[1:]:
-        if h - tramos[-1][1] == timedelta(hours=1):
+        ultimo = tramos[-1][1]
+        if h - ultimo == timedelta(hours=1) and h.date() == ultimo.date():
             tramos[-1][1] = h
         else:
             tramos.append([h, h])
-    return ", ".join(
-        f"{a:%H}h" if a == b else f"{a:%H}h–{b:%H}h" for a, b in tramos
-    )
+    partes: list[str] = []
+    previa: str | None = None
+    for a, b in tramos:
+        etiqueta = _etiqueta_dia(a.date(), hoy)
+        rango = f"{a:%H}h" if a == b else f"{a:%H}h–{b:%H}h"
+        partes.append(rango if etiqueta == previa else f"{etiqueta} {rango}")
+        previa = etiqueta
+    return ", ".join(partes)
 
 
 def _bloque_ahora(p: Pronostico) -> list[str]:
@@ -98,7 +122,7 @@ def _bloque_ahora(p: Pronostico) -> list[str]:
     return [linea for linea in lineas if linea]
 
 
-def _bloque_lluvia(horas: list[HoraPronostico]) -> list[str]:
+def _bloque_lluvia(horas: list[HoraPronostico], hoy: date) -> list[str]:
     """Lluvia, chaparrones y tormentas. Vacío si no hay ningún dato disponible."""
     probs = [h.prob_lluvia for h in horas if h.prob_lluvia is not None]
     cantidades = [h.precipitacion_mm for h in horas if h.precipitacion_mm is not None]
@@ -129,9 +153,9 @@ def _bloque_lluvia(horas: list[HoraPronostico]) -> list[str]:
     if chaparrones:
         mm = sum(h.chaparrones_mm or 0 for h in chaparrones)
         detalle = f" ({_dec(mm)} mm)" if mm > 0 else ""
-        lineas.append(f"🌦️ Chaparrones: {_rangos_horas([h.hora for h in chaparrones])}{detalle}")
+        lineas.append(f"🌦️ Chaparrones: {_rangos_horas([h.hora for h in chaparrones], hoy)}{detalle}")
     if tormentas:
-        lineas.append(f"⛈️ Tormentas: {_rangos_horas([h.hora for h in tormentas])}")
+        lineas.append(f"⛈️ Tormentas: {_rangos_horas([h.hora for h in tormentas], hoy)}")
     return lineas
 
 
@@ -150,16 +174,20 @@ def _celda(h: HoraPronostico) -> str:
     return f"{h.hora:%H}h {emoji}{_grados(h.temperatura)} {prob}"
 
 
-def _bloque_horas(horas: list[HoraPronostico]) -> list[str]:
+def _bloque_horas(horas: list[HoraPronostico], hoy: date) -> list[str]:
     lineas = ["⏱️ *PRÓXIMAS 24 H*"]
-    for i in range(0, len(horas), POR_FILA):
-        lineas.append(" · ".join(_celda(h) for h in horas[i:i + POR_FILA]))
+    for fecha, grupo in groupby(horas, key=lambda h: h.hora.date()):
+        celdas = [_celda(h) for h in grupo]
+        lineas.append(f"*{_titulo_dia(fecha, hoy)}*")
+        for k in range(0, len(celdas), POR_FILA):
+            lineas.append(" · ".join(celdas[k:k + POR_FILA]))
     lineas.append("_hora · clima · °C · % lluvia_")
     return lineas
 
 
 def construir_mensaje(p: Pronostico, vigencia_horas: int = config.VIGENCIA_HORAS) -> str:
     """Texto final listo para copiar. Incluye hora de los datos y vigencia."""
+    hoy = p.generado.date()
     vence = p.generado + timedelta(hours=vigencia_horas)
     sufijo_dia = f" ({vence:%d/%m})" if vence.date() != p.generado.date() else ""
     bloques = [
@@ -168,10 +196,13 @@ def construir_mensaje(p: Pronostico, vigencia_horas: int = config.VIGENCIA_HORAS
             f"📅 {_fecha_corta(p.generado)} · 🕒 {p.generado:%H:%M} hs",
         ],
         _bloque_ahora(p),
-        _bloque_lluvia(p.horas),
+        _bloque_lluvia(p.horas, hoy),
         _bloque_sol(p),
-        _bloque_horas(p.horas),
-        [f"🔄 Datos {p.actual.hora:%H:%M} · ⏳ vigente hasta {vence:%H:%M}{sufijo_dia}"],
+        _bloque_horas(p.horas, hoy),
+        [
+            f"🔄 Datos {p.actual.hora:%H:%M} · ⏳ vigente hasta {vence:%H:%M}{sufijo_dia}",
+            "🌐 Fuente: Open-Meteo.com",
+        ],
     ]
     partes = ["\n".join(b) for b in bloques if b]
     return f"\n{SEPARADOR}\n".join(partes) + "\n"

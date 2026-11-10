@@ -13,6 +13,8 @@ data class HoraPrevista(
     val emoji: String,
     val temperatura: Int?,
     val probLluvia: Int?,
+    /** Encabezado de día del texto, p. ej. "Hoy · Lun 09/11" o "Mañana · Mar 10/11". */
+    val dia: String? = null,
 )
 
 /** Informe leído de latest.txt. Todo viene del archivo; la app no calcula meteorología. */

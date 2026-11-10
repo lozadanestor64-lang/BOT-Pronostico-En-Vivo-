@@ -31,6 +31,7 @@ object ParserLatest {
     private val RE_AMANECER = Regex("🌅\\s*(\\d{2}:\\d{2})")
     private val RE_ATARDECER = Regex("🌇\\s*(\\d{2}:\\d{2})")
     private val RE_HORA = Regex("(\\d{2})h\\s+(\\S+?)(-?\\d+°|s/d)\\s+(\\d+%|–)")
+    private val RE_DIA = Regex("^\\*(.+)\\*\\s*$")
     private val RE_DATOS = Regex("Datos\\s+(\\d{2}:\\d{2})")
     private val RE_VIGENTE = Regex("vigente hasta\\s+(\\d{2}):(\\d{2})(?:\\s*\\((\\d{2})/(\\d{2})\\))?")
     private val RE_MOTIVO = Regex("Motivo:\\s*(.+)")
@@ -77,14 +78,27 @@ object ParserLatest {
         val viento = RE_VIENTO.find(bloqueAhora)
         val uv = RE_UV.find(bloqueAhora)
 
-        val horas = RE_HORA.findAll(bloqueHoras).map { m ->
-            HoraPrevista(
-                hora = m.groupValues[1].toInt(),
-                emoji = m.groupValues[2],
-                temperatura = m.groupValues[3].removeSuffix("°").toIntOrNull(),
-                probLluvia = m.groupValues[4].removeSuffix("%").toIntOrNull(),
-            )
-        }.toList()
+        val horas = mutableListOf<HoraPrevista>()
+        var diaActual: String? = null
+        for (linea in bloqueHoras.lines()) {
+            val limpia = linea.trim()
+            val encabezadoDia = RE_DIA.find(limpia)
+            if (encabezadoDia != null) {
+                diaActual = encabezadoDia.groupValues[1].trim()
+                continue
+            }
+            for (m in RE_HORA.findAll(limpia)) {
+                horas.add(
+                    HoraPrevista(
+                        hora = m.groupValues[1].toInt(),
+                        emoji = m.groupValues[2],
+                        temperatura = m.groupValues[3].removeSuffix("°").toIntOrNull(),
+                        probLluvia = m.groupValues[4].removeSuffix("%").toIntOrNull(),
+                        dia = diaActual,
+                    )
+                )
+            }
+        }
 
         return ResultadoLatest.Pronostico(
             Informe(

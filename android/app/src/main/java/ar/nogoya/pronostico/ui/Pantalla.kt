@@ -74,6 +74,7 @@ private val VERDE = Color(0xFF1B8F5A)
 private val ROJO = Color(0xFFD64545)
 private val AMBAR = Color(0xFFC98A12)
 private val AZUL = Color(0xFF4DA3FF)
+private val AMBAR_CLARO = Color(0xFFFFC857)
 private val FORMATO_GENERADO: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM HH:mm")
 private val FORMATO_HORA: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 private val FORMATO_DIA: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM")
@@ -479,6 +480,8 @@ private fun FranjaHoras(horas: List<HoraPrevista>) {
 private fun TarjetaHora(hora: HoraPrevista) {
     val lluvioso = (hora.probLluvia ?: 0) >= 40
     val fondo = if (lluvioso) AZUL.copy(alpha = 0.30f) else Color.White.copy(alpha = 0.08f)
+    val etiquetaDia = etiquetaCorta(hora.dia)
+    val esHoy = etiquetaDia == "Hoy"
     Column(
         Modifier
             .width(70.dp)
@@ -487,6 +490,12 @@ private fun TarjetaHora(hora: HoraPrevista) {
             .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        Text(
+            etiquetaDia.ifEmpty { " " },
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (esHoy) Color.White.copy(alpha = 0.6f) else AMBAR_CLARO,
+        )
         Text("${hora.hora.toString().padStart(2, '0')}h", fontSize = 13.sp, modifier = Modifier.alpha(0.8f))
         Text(hora.emoji, fontSize = 28.sp)
         Text(hora.temperatura?.let { "$it°" } ?: "s/d", fontSize = 18.sp, fontWeight = FontWeight.Bold)

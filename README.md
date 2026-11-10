@@ -47,6 +47,14 @@ App nativa (Kotlin + Jetpack Compose) en `android/`. **No genera el pronóstico:
 - Sin conexión muestra la última copia guardada, marcada con su antigüedad; nunca la presenta como actual si está vencida.
 - Si cambias el nombre del repo o la rama, edita `urlLatest` en `android/app/build.gradle.kts`.
 
+### 📅 Hoy y mañana
+
+Las 24 horas cruzan la medianoche, así que el texto las separa por día (`*Hoy · Lun 09/11*` y `*Mañana · Mar 10/11*`) y los horarios de lluvia y tormentas llevan el día (`mañana 20h–21h`). En la app, cada tarjeta de hora indica "Hoy" o "Mañana". El texto termina con la fuente de los datos: Open-Meteo.com.
+
+### ¿Por qué mi app del clima muestra otros porcentajes?
+
+Cada servicio usa modelos y fuentes distintos, y la **probabilidad de lluvia** es el dato que más cambia de uno a otro. Esta app muestra tal cual lo que entrega Open-Meteo; no lo corrige ni lo mezcla. No hay una fuente "correcta": conviene comparar varios días contra lo que realmente ocurre.
+
 ### 🔔 Avisos con notificación
 
 - La primera vez que abres la app activa los avisos y pide permiso de notificaciones (Android 13 o superior). Hay un interruptor en la pantalla para activarlos o desactivarlos.

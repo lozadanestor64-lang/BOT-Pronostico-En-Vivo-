@@ -46,8 +46,8 @@ class ParserLatestTest {
         val i = informeDe(ejemplo())
         assertEquals(60, i.probLluviaMax)
         assertEquals(2.8, i.lluviaMm!!, 0.001)
-        assertEquals("18h–19h (1,5 mm)", i.chaparrones)
-        assertEquals("19h–20h", i.tormentas)
+        assertEquals("hoy 18h–19h (1,5 mm)", i.chaparrones)
+        assertEquals("hoy 19h–20h", i.tormentas)
         assertEquals(false, i.sinLluvia)
     }
 
@@ -73,6 +73,19 @@ class ParserLatestTest {
         assertEquals(28, horas[2].temperatura)
         assertEquals(60, horas[2].probLluvia)
         assertTrue(horas[2].emoji.startsWith("🌦"))
+    }
+
+    @Test
+    fun cadaHoraSabeSiEsDeHoyOManana() {
+        val horas = informeDe(ejemplo()).horas
+        assertTrue(horas[0].dia!!.startsWith("Hoy"))
+        assertEquals(22, horas[6].hora)
+        assertTrue(horas[7].dia!!.startsWith("Hoy"))
+        assertEquals(0, horas[8].hora)
+        assertTrue(horas[8].dia!!.startsWith("Mañana"))
+        assertTrue(horas.last().dia!!.startsWith("Mañana"))
+        assertEquals(8, horas.count { it.dia!!.startsWith("Hoy") })
+        assertEquals(16, horas.count { it.dia!!.startsWith("Mañana") })
     }
 
     @Test

@@ -19,6 +19,14 @@ class AmbienteTest {
     }
 
     @Test
+    fun etiquetaCortaDelDia() {
+        assertEquals("Hoy", etiquetaCorta("Hoy · Lun 09/11"))
+        assertEquals("Mañana", etiquetaCorta("Mañana · Mar 10/11"))
+        assertEquals("Mié", etiquetaCorta("Mié 11/11"))
+        assertEquals("", etiquetaCorta(null))
+    }
+
+    @Test
     fun emojiDelNivelUv() {
         assertEquals("🟢", emojiUv("Bajo"))
         assertEquals("🔴", emojiUv("Muy alto"))

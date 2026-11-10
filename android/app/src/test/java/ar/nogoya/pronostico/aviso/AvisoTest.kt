@@ -25,8 +25,8 @@ class AvisoTest {
         assertTrue(c.detalle.contains("ráf. 32"))
         assertTrue(c.detalle.contains("☔ 60%"))
         assertTrue(c.detalle.contains("2,8 mm"))
-        assertTrue(c.detalle.contains("Chaparrones: 18h–19h (1,5 mm)"))
-        assertTrue(c.detalle.contains("Tormentas: 19h–20h"))
+        assertTrue(c.detalle.contains("Chaparrones: hoy 18h–19h (1,5 mm)"))
+        assertTrue(c.detalle.contains("Tormentas: hoy 19h–20h"))
         assertTrue(c.detalle.contains("Vigente hasta 18:05"))
     }
 
