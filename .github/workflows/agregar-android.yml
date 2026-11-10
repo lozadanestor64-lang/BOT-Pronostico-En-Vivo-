@@ -1,0 +1,65 @@
+name: Agregar app Android (una sola vez)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  agregar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Descomprimir android-nogoya.zip en la raíz
+        run: |
+          python3 - <<'PY'
+          import pathlib, shutil, sys, zipfile
+
+          raiz = pathlib.Path(".")
+          zips = sorted(raiz.glob("android*.zip"))
+          if not zips:
+              sys.exit("No encontré android-nogoya.zip en la raíz del repositorio")
+          temporal = pathlib.Path("/tmp/android_zip")
+          with zipfile.ZipFile(zips[0]) as z:
+              z.extractall(temporal)
+          marcas = sorted(temporal.rglob("android/app/build.gradle.kts"), key=lambda p: len(p.parts))
+          if not marcas:
+              sys.exit("El ZIP no contiene android/app/build.gradle.kts")
+          base = marcas[0].parents[2]
+
+          # Nunca se tocan: workflows, datos generados por el bot ni los ZIP.
+          PROTEGIDOS = (".github", "historial")
+          NOMBRES_PROTEGIDOS = ("latest.txt",)
+          copiados = 0
+          for origen in sorted(base.rglob("*")):
+              if origen.is_dir():
+                  continue
+              rel = origen.relative_to(base)
+              if rel.parts[0] in PROTEGIDOS or rel.as_posix() in NOMBRES_PROTEGIDOS:
+                  continue
+              if "__pycache__" in rel.parts or rel.suffix == ".zip":
+                  continue
+              final = raiz / rel
+              final.parent.mkdir(parents=True, exist_ok=True)
+              existia = final.exists()
+              shutil.copy2(origen, final)
+              copiados += 1
+              print("Actualizado:" if existia else "Nuevo:", rel)
+          print(copiados, "archivos escritos desde", zips[0].name)
+          PY
+
+      - name: Guardar en el repositorio
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No había nada nuevo que agregar."
+          else
+            git commit -m "Agregar app Android y actualizar proyecto"
+            git push
+          fi
