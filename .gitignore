@@ -8,3 +8,9 @@ venv/
 build/
 dist/
 *.tmp
+android/.gradle/
+android/**/build/
+android/local.properties
+*.iml
+.idea/
+.kotlin/

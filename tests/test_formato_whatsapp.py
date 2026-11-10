@@ -130,3 +130,12 @@ def test_aviso_no_contiene_datos_meteorologicos(ahora):
     a = construir_aviso_error("falla", ahora, ahora - timedelta(hours=1))
     for dato in ["🌡️", "°", "hPa", "km/h", "PRÓXIMAS"]:
         assert dato not in a
+
+
+def test_formato_coincide_con_el_archivo_de_referencia(crudo, ahora):
+    """Contrato con la app Android: si el formato cambia, hay que actualizar
+    este archivo Y android/app/src/test/resources/ejemplo_latest.txt."""
+    from pathlib import Path
+
+    ref = Path(__file__).parent / "fixtures" / "latest_ejemplo.txt"
+    assert mensaje(crudo, ahora) == ref.read_text(encoding="utf-8")

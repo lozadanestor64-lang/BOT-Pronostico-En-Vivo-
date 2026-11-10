@@ -37,6 +37,37 @@ Temperatura actual, sensación térmica, máxima y mínima, humedad, punto de ro
 
 Cada pronóstico **válido** se guarda en `historial/AAAA-MM-DD_HHMM.txt` (hora de Córdoba). Se conservan los últimos **240** (unos 30 días a 8 por día) y se borran los más antiguos. Los avisos de error **no** se guardan en el historial.
 
+## 📱 App Android
+
+App nativa (Kotlin + Jetpack Compose) en `android/`. **No genera el pronóstico: lo lee de `latest.txt`** del repositorio, así que el repositorio debe ser **público** y el workflow del pronóstico debe haberse ejecutado al menos una vez.
+
+- Muestra temperatura, sensación térmica, máxima y mínima, humedad, punto de rocío, presión, UV, visibilidad, viento, ráfagas, lluvia, chaparrones, tormentas, amanecer, atardecer y las próximas 24 horas (franja horizontal deslizable). En el teléfono acostado pasa a dos columnas.
+- Botones: **Actualizar**, **Copiar** y **Compartir**. Copiar y Compartir solo funcionan con un informe **vigente**; si está vencido o es un aviso "NO PUBLICAR", se bloquean.
+- Compartir usa el menú oficial de Android y no apunta a ninguna app (tampoco a WhatsApp). **Tú eliges el destino y publicas a mano.**
+- Sin conexión muestra la última copia guardada, marcada con su antigüedad; nunca la presenta como actual si está vencida.
+- Si cambias el nombre del repo o la rama, edita `urlLatest` en `android/app/build.gradle.kts`.
+
+### 🔔 Avisos con notificación
+
+- La primera vez que abres la app activa los avisos y pide permiso de notificaciones (Android 13 o superior). Hay un interruptor en la pantalla para activarlos o desactivarlos.
+- En segundo plano la app revisa `latest.txt` cada 15 minutos (WorkManager). Cuando aparece un pronóstico **nuevo y vigente**, publica una notificación con el resumen (temperatura, sensación, viento, lluvia, tormentas y hasta cuándo vale). Al tocarla se abre la app y se actualiza. Nunca avisa dos veces el mismo pronóstico ni uno vencido.
+- De **23:00 a 06:00** la notificación llega en silencio, para que los pronósticos de la madrugada no te despierten.
+- **El aviso no es exacto a la hora**: llega cuando el motor ya publicó el texto (GitHub puede demorar unos minutos) más el intervalo de revisión, y Android puede retrasarlo para ahorrar batería. Si no llega, quita la restricción de batería de la app (en Samsung: Ajustes → Batería → Límites de uso en segundo plano → la app no debe estar en "apps en suspensión").
+- Al activar los avisos recibirás enseguida el pronóstico vigente actual: sirve de prueba.
+
+### Descargar el APK
+
+1. Abre **Actions** → **Android APK** → **Run workflow** (o espera a que se ejecute solo al cambiar algo en `android/`).
+2. Cuando termine en verde ✅, entra a esa ejecución y baja hasta **Artifacts**.
+3. Descarga **Pronostico-Nogoya-APK** (un `.zip` que contiene `Pronostico-Nogoya.apk`) y descomprímelo.
+4. En el celular, ábrelo e instala. Android pedirá permitir instalar desde el origen (tu navegador o gestor de archivos).
+
+El APK es de depuración, firmado con una clave fija incluida en el repositorio (`android/app/debug.keystore`, clave pública estándar). Sirve para uso personal: cada versión nueva se instala encima de la anterior. No es adecuado para publicar en Play Store.
+
+### Pruebas de la app
+
+Se ejecutan automáticamente antes de compilar (`gradle testDebugUnitTest`): lectura del formato de `latest.txt`, vigencia, errores y respaldo sin conexión. El archivo `android/app/src/test/resources/ejemplo_latest.txt` es idéntico a `tests/fixtures/latest_ejemplo.txt` del motor; una prueba de Python falla si el formato del motor cambia, para que la app no quede desincronizada.
+
 ## Estructura
 
 ```
@@ -53,6 +84,8 @@ src/pronostico_nogoya/
   historial.py         Snapshots, retención y escritura atómica
   __main__.py          Punto de entrada
 tests/                 Pruebas con pytest y una respuesta simulada (sin red)
+android/               App Android (Kotlin + Compose) y sus pruebas
+.github/workflows/     pronostico.yml · android-apk.yml
 latest.txt             Último resultado (pronóstico o aviso)
 historial/             Pronósticos válidos anteriores
 ```
