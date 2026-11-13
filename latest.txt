@@ -1,30 +1,7 @@
-🌦️ *PRONÓSTICO NOGOYÁ EN VIVO*
-📅 Vie 13/11 · 🕒 00:42 hs
-━━━━━━━━━━━━━━━━
-☁️ *AHORA: Nublado*
-🌡️ *23°* · ST 24° · 🔺32° 🔻21°
-💧 71% · 🌫️ Rocío 18°
-📊 1015 hPa · 🟢 UV 0,0 (Bajo)
-👁️ 50 km · 💨 14 km/h ENE · 🌬️ ráf. 24
-━━━━━━━━━━━━━━━━
-🌧️ *LLUVIA (24 h)*
-☔ Prob. máx. 29% · 💦 0,1 mm
-━━━━━━━━━━━━━━━━
-🌅 05:51 · 🌇 19:35
-━━━━━━━━━━━━━━━━
-⏱️ *PRÓXIMAS 24 H*
-*Hoy · Vie 13/11*
-01h ☁️23° 0% · 02h 🌙22° 0% · 03h 🌙22° 0%
-04h 🌙21° 0% · 05h 🌙21° 0% · 06h ☀️21° 0%
-07h ☀️22° 1% · 08h ☀️24° 1% · 09h ☀️25° 2%
-10h 🌤️27° 3% · 11h 🌤️29° 3% · 12h ⛅31° 4%
-13h ☁️31° 4% · 14h ☁️32° 3% · 15h ☁️32° 4%
-16h 🌤️32° 6% · 17h ☁️32° 10% · 18h ☁️31° 12%
-19h ☁️29° 12% · 20h 🌦️27° 11% · 21h ☁️26° 12%
-22h ☁️26° 16% · 23h ☁️25° 22%
-*Mañana · Sáb 14/11*
-00h 🌙25° 29%
-_hora · clima · °C · % lluvia_
-━━━━━━━━━━━━━━━━
-🔄 Datos 00:30 · ⏳ vigente hasta 03:42
-🌐 Fuente: Open-Meteo.com
+⚠️ *PRONÓSTICO NO DISPONIBLE*
+🚫 *NO PUBLICAR*: no hay datos confiables en este momento.
+🕒 Intento: Vie 13/11 03:54 hs
+❗ Motivo: No se pudo consultar Open-Meteo tras 3 intentos: error de red (ReadTimeout)
+📜 Último pronóstico válido: Vie 13/11 00:42 hs (hace 3 h 12 min). Está vencido y solo consta en el historial.
+📁 Archivo: historial/2026-11-13_0042.txt
+🔁 Se reintentará en la próxima ejecución programada.
