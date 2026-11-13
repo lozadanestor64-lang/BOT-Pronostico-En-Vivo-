@@ -1,7 +1,7 @@
 ⚠️ *PRONÓSTICO NO DISPONIBLE*
 🚫 *NO PUBLICAR*: no hay datos confiables en este momento.
-🕒 Intento: Jue 12/11 18:37 hs
+🕒 Intento: Jue 12/11 21:44 hs
 ❗ Motivo: No se pudo consultar Open-Meteo tras 3 intentos: error de red (ReadTimeout)
-📜 Último pronóstico válido: Jue 12/11 15:41 hs (hace 2 h 56 min). Está vencido y solo consta en el historial.
+📜 Último pronóstico válido: Jue 12/11 15:41 hs (hace 6 h 03 min). Está vencido y solo consta en el historial.
 📁 Archivo: historial/2026-11-12_1541.txt
 🔁 Se reintentará en la próxima ejecución programada.
