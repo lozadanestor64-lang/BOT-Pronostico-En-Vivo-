@@ -1,32 +1,7 @@
-🌦️ *PRONÓSTICO NOGOYÁ EN VIVO*
-📅 Sáb 14/11 · 🕒 03:43 hs
-━━━━━━━━━━━━━━━━
-⛈️ *AHORA: Tormenta*
-🌡️ *22°* · ST 25° · 🔺28° 🔻19°
-💧 86% · 🌫️ Rocío 19°
-📊 1011 hPa · 🟢 UV 0,0 (Bajo)
-👁️ 8,9 km · 💨 6 km/h SE · 🌬️ ráf. 14
-━━━━━━━━━━━━━━━━
-🌧️ *LLUVIA (24 h)*
-☔ Prob. máx. 71% · 💦 16,7 mm
-🌦️ Chaparrones: hoy 04h–09h (9,5 mm)
-⛈️ Tormentas: hoy 04h
-━━━━━━━━━━━━━━━━
-🌅 05:50 · 🌇 19:36
-━━━━━━━━━━━━━━━━
-⏱️ *PRÓXIMAS 24 H*
-*Hoy · Sáb 14/11*
-04h ⛈️22° 55% · 05h 🌧️21° 65% · 06h 🌧️21° 71%
-07h 🌧️21° 69% · 08h 🌦️21° 63% · 09h 🌦️22° 55%
-10h 🌦️23° 47% · 11h ☁️27° 38% · 12h ☁️28° 31%
-13h ☁️28° 28% · 14h ☁️28° 28% · 15h 🌤️27° 25%
-16h 🌤️28° 18% · 17h ☀️28° 9% · 18h ☀️27° 2%
-19h ☀️25° 0% · 20h 🌙23° 0% · 21h 🌙21° 0%
-22h 🌙21° 0% · 23h 🌙20° 0%
-*Mañana · Dom 15/11*
-00h 🌙19° 0% · 01h 🌙18° 0% · 02h ☁️17° 0%
-03h ☁️17° 0%
-_hora · clima · °C · % lluvia_
-━━━━━━━━━━━━━━━━
-🔄 Datos 03:30 · ⏳ vigente hasta 06:43
-🌐 Fuente: Open-Meteo.com
+⚠️ *PRONÓSTICO NO DISPONIBLE*
+🚫 *NO PUBLICAR*: no hay datos confiables en este momento.
+🕒 Intento: Sáb 14/11 06:35 hs
+❗ Motivo: No se pudo consultar Open-Meteo tras 3 intentos: error de red (ReadTimeout)
+📜 Último pronóstico válido: Sáb 14/11 03:43 hs (hace 2 h 52 min). Está vencido y solo consta en el historial.
+📁 Archivo: historial/2026-11-14_0343.txt
+🔁 Se reintentará en la próxima ejecución programada.
