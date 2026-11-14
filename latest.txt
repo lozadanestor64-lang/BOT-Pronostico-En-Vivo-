@@ -1,14 +1,14 @@
 🌦️ *PRONÓSTICO NOGOYÁ EN VIVO*
-📅 Sáb 14/11 · 🕒 00:39 hs
+📅 Sáb 14/11 · 🕒 03:43 hs
 ━━━━━━━━━━━━━━━━
-☁️ *AHORA: Parcialmente nublado*
-🌡️ *23°* · ST 26° · 🔺28° 🔻19°
-💧 81% · 🌫️ Rocío 20°
+⛈️ *AHORA: Tormenta*
+🌡️ *22°* · ST 25° · 🔺28° 🔻19°
+💧 86% · 🌫️ Rocío 19°
 📊 1011 hPa · 🟢 UV 0,0 (Bajo)
-👁️ 46 km · 💨 5 km/h ESE · 🌬️ ráf. 15
+👁️ 8,9 km · 💨 6 km/h SE · 🌬️ ráf. 14
 ━━━━━━━━━━━━━━━━
 🌧️ *LLUVIA (24 h)*
-☔ Prob. máx. 71% · 💦 16,8 mm
+☔ Prob. máx. 71% · 💦 16,7 mm
 🌦️ Chaparrones: hoy 04h–09h (9,5 mm)
 ⛈️ Tormentas: hoy 04h
 ━━━━━━━━━━━━━━━━
@@ -16,7 +16,6 @@
 ━━━━━━━━━━━━━━━━
 ⏱️ *PRÓXIMAS 24 H*
 *Hoy · Sáb 14/11*
-01h 🌙23° 16% · 02h 🌙22° 30% · 03h 🌦️22° 43%
 04h ⛈️22° 55% · 05h 🌧️21° 65% · 06h 🌧️21° 71%
 07h 🌧️21° 69% · 08h 🌦️21° 63% · 09h 🌦️22° 55%
 10h 🌦️23° 47% · 11h ☁️27° 38% · 12h ☁️28° 31%
@@ -25,8 +24,9 @@
 19h ☀️25° 0% · 20h 🌙23° 0% · 21h 🌙21° 0%
 22h 🌙21° 0% · 23h 🌙20° 0%
 *Mañana · Dom 15/11*
-00h 🌙19° 0%
+00h 🌙19° 0% · 01h 🌙18° 0% · 02h ☁️17° 0%
+03h ☁️17° 0%
 _hora · clima · °C · % lluvia_
 ━━━━━━━━━━━━━━━━
-🔄 Datos 00:30 · ⏳ vigente hasta 03:39
+🔄 Datos 03:30 · ⏳ vigente hasta 06:43
 🌐 Fuente: Open-Meteo.com
