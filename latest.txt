@@ -1,7 +1,30 @@
-⚠️ *PRONÓSTICO NO DISPONIBLE*
-🚫 *NO PUBLICAR*: no hay datos confiables en este momento.
-🕒 Intento: Dom 15/11 03:47 hs
-❗ Motivo: No se pudo consultar Open-Meteo tras 3 intentos: error de red (ReadTimeout)
-📜 Último pronóstico válido: Dom 15/11 00:41 hs (hace 3 h 06 min). Está vencido y solo consta en el historial.
-📁 Archivo: historial/2026-11-15_0041.txt
-🔁 Se reintentará en la próxima ejecución programada.
+🌦️ *PRONÓSTICO NOGOYÁ EN VIVO*
+📅 Dom 15/11 · 🕒 06:37 hs
+━━━━━━━━━━━━━━━━
+🌤️ *AHORA: Mayormente despejado*
+🌡️ *20°* · ST 21° · 🔺29° 🔻20°
+💧 82% · 🌫️ Rocío 17°
+📊 1011 hPa · 🟢 UV 0,0 (Bajo)
+👁️ 42 km · 💨 8 km/h SE · 🌬️ ráf. 15
+━━━━━━━━━━━━━━━━
+🌧️ *LLUVIA (24 h)*
+☔ Prob. máx. 4% · 💦 0,0 mm
+━━━━━━━━━━━━━━━━
+🌅 05:50 · 🌇 19:37
+━━━━━━━━━━━━━━━━
+⏱️ *PRÓXIMAS 24 H*
+*Hoy · Dom 15/11*
+07h ⛅21° 0% · 08h ⛅22° 0% · 09h ☁️24° 0%
+10h ☁️25° 0% · 11h ⛅27° 0% · 12h ⛅27° 0%
+13h ⛅28° 0% · 14h ☁️29° 0% · 15h ☁️29° 0%
+16h ☀️29° 0% · 17h ☀️29° 0% · 18h ☁️28° 0%
+19h ☁️26° 0% · 20h ☁️25° 0% · 21h ☁️24° 0%
+22h ☁️23° 0% · 23h ☁️23° 0%
+*Mañana · Lun 16/11*
+00h ☁️22° 0% · 01h ☁️21° 0% · 02h ☁️20° 0%
+03h ☁️20° 0% · 04h ☁️20° 1% · 05h ☁️20° 3%
+06h ☁️19° 4%
+_hora · clima · °C · % lluvia_
+━━━━━━━━━━━━━━━━
+🔄 Datos 06:30 · ⏳ vigente hasta 09:37
+🌐 Fuente: Open-Meteo.com
