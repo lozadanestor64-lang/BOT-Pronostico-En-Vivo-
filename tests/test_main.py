@@ -75,3 +75,46 @@ def test_recuperacion_tras_un_error(tmp_path, crudo, ahora):
     ejecutar(tmp_path, obtener=fallar(ErrorAPI("caído")), ahora=ahora)
     assert ejecutar(tmp_path, obtener=lambda: crudo, ahora=ahora) == 0
     assert "NO PUBLICAR" not in (tmp_path / "latest.txt").read_text(encoding="utf-8")
+
+
+# ---------- Comparación de modelos ----------
+
+def _modelos():
+    import json
+    from pathlib import Path
+
+    ruta = Path(__file__).parent / "fixtures" / "respuesta_modelos.json"
+    return json.loads(ruta.read_text(encoding="utf-8"))
+
+
+def test_con_modelos_el_texto_incluye_la_comparacion(tmp_path, crudo, ahora):
+    codigo = ejecutar(tmp_path, obtener=lambda: crudo, ahora=ahora, obtener_modelos=_modelos)
+    assert codigo == 0
+    texto = (tmp_path / "latest.txt").read_text(encoding="utf-8")
+    assert "🧪 *MODELOS" in texto and "La mayoría coincide" in texto
+
+
+def test_si_los_modelos_fallan_el_pronostico_sale_igual(tmp_path, crudo, ahora):
+    codigo = ejecutar(tmp_path, obtener=lambda: crudo, ahora=ahora, obtener_modelos=fallar(ErrorAPI("sin red")))
+    assert codigo == 0
+    texto = (tmp_path / "latest.txt").read_text(encoding="utf-8")
+    assert "PRONÓSTICO NOGOYÁ EN VIVO" in texto and "MODELOS" not in texto
+    assert "NO PUBLICAR" not in texto
+
+
+def test_un_error_inesperado_en_los_modelos_tampoco_rompe(tmp_path, crudo, ahora):
+    codigo = ejecutar(tmp_path, obtener=lambda: crudo, ahora=ahora, obtener_modelos=fallar(RuntimeError("bug")))
+    assert codigo == 0
+    assert "MODELOS" not in (tmp_path / "latest.txt").read_text(encoding="utf-8")
+
+
+def test_respuesta_de_modelos_basura_se_ignora(tmp_path, crudo, ahora):
+    codigo = ejecutar(tmp_path, obtener=lambda: crudo, ahora=ahora, obtener_modelos=lambda: {"hourly": "x"})
+    assert codigo == 0
+    assert "MODELOS" not in (tmp_path / "latest.txt").read_text(encoding="utf-8")
+
+
+def test_sin_obtener_modelos_no_se_consulta_nada(tmp_path, crudo, ahora):
+    llamadas = []
+    ejecutar(tmp_path, obtener=lambda: crudo, ahora=ahora)
+    assert llamadas == []

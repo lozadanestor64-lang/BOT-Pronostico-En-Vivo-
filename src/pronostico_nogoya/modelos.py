@@ -49,9 +49,34 @@ class HoraPronostico:
 
 
 @dataclass(frozen=True, slots=True)
+class DiaPrevisto:
+    fecha: date
+    maxima: float | None = None
+    minima: float | None = None
+    prob_lluvia: float | None = None
+    precipitacion_mm: float | None = None
+    codigo: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ResultadoModelo:
+    nombre: str
+    horas_lluvia: list[datetime]
+    total_mm: float
+
+
+@dataclass(frozen=True, slots=True)
+class Consenso:
+    modelos: list[ResultadoModelo]
+    mayoria: list[datetime]   # horas en que llueve según más de la mitad de los modelos
+
+
+@dataclass(frozen=True, slots=True)
 class Pronostico:
     generado: datetime
     actual: Actual
     hoy: DiaHoy
     horas: list[HoraPronostico]
     advertencias: list[str] = field(default_factory=list)
+    dias: list[DiaPrevisto] = field(default_factory=list)
+    consenso: Consenso | None = None

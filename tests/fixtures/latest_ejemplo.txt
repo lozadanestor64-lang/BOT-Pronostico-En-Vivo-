@@ -28,5 +28,8 @@
 15h 🌤️30° 10%
 _hora · clima · °C · % lluvia_
 ━━━━━━━━━━━━━━━━
+📆 *PRÓXIMOS DÍAS*
+Dom 08/11 🌤️29°/17° · 💧10%
+━━━━━━━━━━━━━━━━
 🔄 Datos 15:00 · ⏳ vigente hasta 18:05
 🌐 Fuente: Open-Meteo.com

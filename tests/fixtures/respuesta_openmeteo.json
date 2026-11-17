@@ -662,7 +662,8 @@
   "sunset": "iso8601",
   "uv_index_max": "",
   "precipitation_sum": "mm",
-  "precipitation_probability_max": "%"
+  "precipitation_probability_max": "%",
+  "weather_code": "wmo code"
  },
  "daily": {
   "time": [
@@ -696,6 +697,10 @@
   "precipitation_probability_max": [
    60,
    10
+  ],
+  "weather_code": [
+   95,
+   1
   ]
  }
 }

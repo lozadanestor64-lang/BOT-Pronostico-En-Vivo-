@@ -8,7 +8,7 @@ from itertools import groupby
 
 from . import config
 from .emojis import CODIGOS_CHAPARRON, CODIGOS_TORMENTA, clima, nivel_uv
-from .modelos import HoraPronostico, Pronostico
+from .modelos import Consenso, DiaPrevisto, HoraPronostico, Pronostico
 
 SEPARADOR = "━" * 16
 _DIAS = ("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom")
@@ -159,6 +159,44 @@ def _bloque_lluvia(horas: list[HoraPronostico], hoy: date) -> list[str]:
     return lineas
 
 
+def _bloque_modelos(consenso: Consenso | None, hoy: date) -> list[str]:
+    """Qué dice cada modelo sobre la lluvia y dónde coinciden. Vacío si no hay comparación."""
+    if consenso is None:
+        return []
+    lineas = ["🧪 *MODELOS · lluvia 24 h*"]
+    hay_lluvia = False
+    for r in consenso.modelos:
+        if r.horas_lluvia:
+            hay_lluvia = True
+            lineas.append(f"{r.nombre}: {_rangos_horas(r.horas_lluvia, hoy)} ({_dec(r.total_mm)} mm)")
+        else:
+            lineas.append(f"{r.nombre}: sin lluvia")
+    if consenso.mayoria:
+        lineas.append(f"🤝 La mayoría coincide: {_rangos_horas(consenso.mayoria, hoy)}")
+    elif hay_lluvia:
+        lineas.append("⚠️ Sin acuerdo entre modelos")
+    else:
+        lineas.append("✅ Todos coinciden: sin lluvia")
+    return lineas
+
+
+def _linea_dia(d: DiaPrevisto) -> str:
+    emoji, _ = clima(d.codigo, True)
+    temperaturas = f"{_grados(d.maxima)}/{_grados(d.minima)}"
+    partes: list[str | None] = [
+        f"{_DIAS[d.fecha.weekday()]} {d.fecha:%d/%m} {emoji}{temperaturas}",
+        f"💧{_red(d.prob_lluvia)}%" if d.prob_lluvia is not None else None,
+        f"{_dec(d.precipitacion_mm)} mm" if d.precipitacion_mm is not None and d.precipitacion_mm >= 1 else None,
+    ]
+    return _unir(partes)
+
+
+def _bloque_dias(dias: list[DiaPrevisto]) -> list[str]:
+    if not dias:
+        return []
+    return ["📆 *PRÓXIMOS DÍAS*"] + [_linea_dia(d) for d in dias]
+
+
 def _bloque_sol(p: Pronostico) -> list[str]:
     hoy = p.hoy
     linea = _unir([
@@ -197,8 +235,10 @@ def construir_mensaje(p: Pronostico, vigencia_horas: int = config.VIGENCIA_HORAS
         ],
         _bloque_ahora(p),
         _bloque_lluvia(p.horas, hoy),
+        _bloque_modelos(p.consenso, hoy),
         _bloque_sol(p),
         _bloque_horas(p.horas, hoy),
+        _bloque_dias(p.dias),
         [
             f"🔄 Datos {p.actual.hora:%H:%M} · ⏳ vigente hasta {vence:%H:%M}{sufijo_dia}",
             "🌐 Fuente: Open-Meteo.com",

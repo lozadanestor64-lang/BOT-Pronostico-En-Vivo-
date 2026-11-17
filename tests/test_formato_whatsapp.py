@@ -163,3 +163,79 @@ def test_formato_coincide_con_el_archivo_de_referencia(crudo, ahora):
 
     ref = Path(__file__).parent / "fixtures" / "latest_ejemplo.txt"
     assert mensaje(crudo, ahora) == ref.read_text(encoding="utf-8")
+
+
+# ---------- Modelos y próximos días ----------
+
+def _con_modelos(crudo, ahora):
+    import json
+    from dataclasses import replace
+    from pathlib import Path
+
+    from pronostico_nogoya.consenso import calcular_consenso
+
+    ruta = Path(__file__).parent / "fixtures" / "respuesta_modelos.json"
+    modelos = json.loads(ruta.read_text(encoding="utf-8"))
+    p = procesar(crudo, ahora)
+    return replace(p, consenso=calcular_consenso(modelos, [h.hora for h in p.horas]))
+
+
+def test_bloque_de_modelos(crudo, ahora):
+    m = construir_mensaje(_con_modelos(crudo, ahora))
+    assert "🧪 *MODELOS · lluvia 24 h*" in m
+    assert "ECMWF: mañana 00h–02h (9,8 mm)" in m
+    assert "GFS: mañana 01h–05h (5,9 mm)" in m
+    assert "🤝 La mayoría coincide: mañana 01h–04h" in m
+
+
+def test_modelos_sin_acuerdo_o_sin_lluvia(crudo, ahora):
+    from dataclasses import replace
+
+    from pronostico_nogoya.modelos import Consenso, ResultadoModelo
+
+    h = procesar(crudo, ahora).horas
+    sin_acuerdo = Consenso([ResultadoModelo("A", [h[0].hora], 1.0), ResultadoModelo("B", [h[5].hora], 2.0)], [])
+    texto = construir_mensaje(replace(procesar(crudo, ahora), consenso=sin_acuerdo))
+    assert "⚠️ Sin acuerdo entre modelos" in texto
+    seco = Consenso([ResultadoModelo("A", [], 0.0), ResultadoModelo("B", [], 0.0)], [])
+    texto = construir_mensaje(replace(procesar(crudo, ahora), consenso=seco))
+    assert "A: sin lluvia" in texto and "✅ Todos coinciden: sin lluvia" in texto
+
+
+def test_sin_comparacion_no_hay_bloque_de_modelos(crudo, ahora):
+    assert "MODELOS" not in mensaje(crudo, ahora)
+
+
+def test_bloque_de_proximos_dias(crudo, ahora):
+    m = mensaje(crudo, ahora)
+    assert "📆 *PRÓXIMOS DÍAS*" in m
+    assert "Dom 08/11 🌤️29°/17° · 💧10%" in m
+
+
+def test_proximos_dias_con_varios_dias_y_datos_faltantes(crudo, ahora):
+    from dataclasses import replace
+    from datetime import date
+
+    from pronostico_nogoya.modelos import DiaPrevisto
+
+    dias = [
+        DiaPrevisto(date(2026, 11, 8), 29, 17, 15, 0.0, 1),
+        DiaPrevisto(date(2026, 11, 9), 26, 15, 80, 12.4, 95),
+        DiaPrevisto(date(2026, 11, 10), None, None, None, None, None),
+    ]
+    m = construir_mensaje(replace(procesar(crudo, ahora), dias=dias))
+    assert "Dom 08/11 🌤️29°/17° · 💧15%" in m
+    assert "Lun 09/11 ⛈️26°/15° · 💧80% · 12,4 mm" in m
+    assert "Mar 10/11 ❔s/d/s/d" in m and "None" not in m
+
+
+def test_formato_con_modelos_coincide_con_su_referencia(crudo, ahora):
+    from pathlib import Path
+
+    ref = Path(__file__).parent / "fixtures" / "latest_ejemplo_modelos.txt"
+    assert construir_mensaje(_con_modelos(crudo, ahora)) == ref.read_text(encoding="utf-8")
+
+
+def test_lineas_cortas_con_modelos(crudo, ahora):
+    for linea in construir_mensaje(_con_modelos(crudo, ahora)).splitlines():
+        assert len(linea) <= LARGO_MAXIMO_LINEA, linea

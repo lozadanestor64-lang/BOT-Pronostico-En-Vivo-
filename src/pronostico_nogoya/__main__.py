@@ -9,12 +9,14 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
 from . import config, historial
-from .cliente_api import obtener_pronostico_crudo
+from .cliente_api import obtener_modelos_crudo, obtener_pronostico_crudo
+from .consenso import calcular_consenso
 from .errores import ErrorPronostico
 from .formato_whatsapp import construir_aviso_error, construir_mensaje
 from .procesamiento import procesar
@@ -35,16 +37,36 @@ def _escribir_aviso(raiz: Path, motivo: str, ahora: datetime) -> None:
     print(aviso)
 
 
+def _comparar_modelos(horas: list[datetime], obtener_modelos: Callable[[], dict]):
+    """Información de apoyo: si falla por cualquier motivo se omite y el pronóstico sale igual."""
+    try:
+        consenso = calcular_consenso(obtener_modelos(), horas)
+        if consenso is None:
+            log.warning("Comparación de modelos: sin datos suficientes (se omite el bloque)")
+        else:
+            log.info("Comparación de modelos: %s", ", ".join(r.nombre for r in consenso.modelos))
+        return consenso
+    except ErrorPronostico as exc:
+        log.warning("Comparación de modelos no disponible: %s", exc)
+    except Exception:  # noqa: BLE001 - nunca debe romper el pronóstico principal
+        log.warning("Comparación de modelos omitida por un error inesperado")
+    return None
+
+
 def ejecutar(
     raiz: Path,
     obtener: Callable[[], dict] = obtener_pronostico_crudo,
     ahora: datetime | None = None,
+    obtener_modelos: Callable[[], dict] | None = None,
 ) -> int:
     """Flujo completo. Devuelve 0 si salió bien y distinto de 0 si hubo error."""
     ahora = (ahora or datetime.now(config.ZONA)).astimezone(config.ZONA)
     try:
         crudo = obtener()
         pronostico = procesar(crudo, ahora)
+        if obtener_modelos is not None:
+            consenso = _comparar_modelos([h.hora for h in pronostico.horas], obtener_modelos)
+            pronostico = replace(pronostico, consenso=consenso)
         texto = construir_mensaje(pronostico)
     except ErrorPronostico as exc:
         log.error("%s", exc)
@@ -79,7 +101,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-    return ejecutar(args.raiz)
+    return ejecutar(args.raiz, obtener_modelos=obtener_modelos_crudo)
 
 
 if __name__ == "__main__":

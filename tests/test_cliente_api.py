@@ -108,3 +108,33 @@ def test_error_informado_por_la_api():
     sesion = SesionFalsa(RespuestaFalsa(datos={"error": True, "reason": "parámetro inválido"}))
     with pytest.raises(ErrorAPI, match="parámetro inválido"):
         ejecutar(sesion)
+
+
+def test_consulta_de_modelos_pide_solo_precipitacion_en_mm():
+    from pronostico_nogoya.cliente_api import obtener_modelos_crudo
+
+    sesion = SesionFalsa(RespuestaFalsa())
+    obtener_modelos_crudo(sesion, esperar=lambda s: None)
+    params = sesion.llamadas[0][1]["params"]
+    assert params["hourly"] == "precipitation"
+    assert params["precipitation_unit"] == "mm"
+    assert params["timezone"] == "America/Argentina/Cordoba"
+    for modelo in ("ecmwf_ifs025", "gfs_seamless", "icon_seamless"):
+        assert modelo in params["models"]
+
+
+def test_consulta_de_modelos_reintenta_menos():
+    from pronostico_nogoya.cliente_api import obtener_modelos_crudo
+
+    sesion = SesionFalsa(*[RespuestaFalsa(500)] * 5)
+    with pytest.raises(ErrorAPI):
+        obtener_modelos_crudo(sesion, esperar=lambda s: None)
+    assert len(sesion.llamadas) == 2
+
+
+def test_consulta_principal_pide_siete_dias_y_codigo_diario():
+    sesion = SesionFalsa(RespuestaFalsa())
+    ejecutar(sesion)
+    params = sesion.llamadas[0][1]["params"]
+    assert params["forecast_days"] == 7
+    assert "weather_code" in params["daily"]

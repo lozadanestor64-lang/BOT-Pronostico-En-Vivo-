@@ -18,6 +18,7 @@ def obtener_pronostico_crudo(
     sesion: Any = None,
     esperar: Callable[[float], None] = time.sleep,
     reintentos: int = config.REINTENTOS,
+    parametros: dict | None = None,
 ) -> dict:
     """Consulta Open-Meteo con timeout y reintentos con espera creciente.
 
@@ -32,7 +33,7 @@ def obtener_pronostico_crudo(
             try:
                 resp = sesion.get(
                     config.URL_API,
-                    params=config.parametros(),
+                    params=parametros or config.parametros(),
                     timeout=config.TIMEOUT_SEGUNDOS,
                     headers={"User-Agent": config.USER_AGENT},
                 )
@@ -63,3 +64,8 @@ def obtener_pronostico_crudo(
         if propia:
             sesion.close()
     raise ErrorAPI(f"No se pudo consultar Open-Meteo tras {reintentos} intentos: {ultimo_error}")
+
+
+def obtener_modelos_crudo(sesion: Any = None, esperar: Callable[[float], None] = time.sleep) -> dict:
+    """Consulta de varios modelos (solo lluvia). Menos reintentos: es información de apoyo."""
+    return obtener_pronostico_crudo(sesion, esperar, reintentos=2, parametros=config.parametros_modelos())

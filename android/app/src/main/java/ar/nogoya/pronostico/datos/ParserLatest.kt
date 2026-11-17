@@ -36,6 +36,9 @@ object ParserLatest {
     private val RE_VIGENTE = Regex("vigente hasta\\s+(\\d{2}):(\\d{2})(?:\\s*\\((\\d{2})/(\\d{2})\\))?")
     private val RE_MOTIVO = Regex("Motivo:\\s*(.+)")
 
+    private fun lineasDe(bloque: String?): List<String> =
+        bloque?.lines()?.drop(1)?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
+
     private fun Regex.entero(texto: String): Int? =
         find(texto)?.groupValues?.get(1)?.toIntOrNull()
 
@@ -74,6 +77,8 @@ object ParserLatest {
         val bloqueLluvia = bloques.firstOrNull { it.contains("LLUVIA") } ?: ""
         val bloqueSol = bloques.firstOrNull { it.contains("🌅") || it.contains("🌇") } ?: ""
         val bloqueHoras = bloques.firstOrNull { it.contains("PRÓXIMAS 24 H") } ?: ""
+        val bloqueModelos = bloques.firstOrNull { it.contains("*MODELOS") }
+        val bloqueDias = bloques.firstOrNull { it.contains("PRÓXIMOS DÍAS") }
 
         val viento = RE_VIENTO.find(bloqueAhora)
         val uv = RE_UV.find(bloqueAhora)
@@ -129,6 +134,8 @@ object ParserLatest {
                 amanecer = RE_AMANECER.cadena(bloqueSol),
                 atardecer = RE_ATARDECER.cadena(bloqueSol),
                 horas = horas,
+                modelos = lineasDe(bloqueModelos),
+                dias = lineasDe(bloqueDias),
             )
         )
     }

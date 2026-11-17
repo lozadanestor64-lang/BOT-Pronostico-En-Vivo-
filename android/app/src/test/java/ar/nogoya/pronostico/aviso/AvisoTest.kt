@@ -5,6 +5,7 @@ import ar.nogoya.pronostico.datos.ejemplo
 import ar.nogoya.pronostico.datos.informeDe
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.ZonedDateTime
@@ -92,5 +93,53 @@ class AvisoTest {
         assertFalse(esHorarioSilencioso(a(6, 0)))
         assertFalse(esHorarioSilencioso(a(12, 0)))
         assertFalse(esHorarioSilencioso(a(22, 59)))
+    }
+
+    // ---------- Alertas de lluvia / tormenta cercanas ----------
+
+    @Test
+    fun alertaDeTormentaCercana() {
+        val alerta = construirAlerta(informeDe(ejemplo()))!!
+        assertEquals("tormenta|2026-11-07", alerta.clave)
+        assertTrue(alerta.contenido.titulo.contains("Tormenta"))
+        assertTrue(alerta.contenido.resumen.contains("19h"))
+        assertTrue(alerta.contenido.detalle.contains("Probabilidad de lluvia a esa hora: 60%"))
+    }
+
+    @Test
+    fun alertaDeLluviaSiNoHayTormenta() {
+        val base = informeDe(ejemplo())
+        val sinTormenta = base.copy(horas = base.horas.map { it.copy(emoji = "☁️") })
+        val alerta = construirAlerta(sinTormenta)!!
+        assertTrue(alerta.clave.startsWith("lluvia|"))
+        assertTrue(alerta.contenido.resumen.contains("18h"))
+    }
+
+    @Test
+    fun sinRiesgoNoHayAlerta() {
+        val base = informeDe(ejemplo())
+        val seco = base.copy(horas = base.horas.map { it.copy(emoji = "☁️", probLluvia = 10) })
+        assertNull(construirAlerta(seco))
+    }
+
+    @Test
+    fun loQueEstaFueraDelHorizonteNoAlerta() {
+        assertNull(construirAlerta(informeDe(ejemplo()), horizonteHoras = 2))
+    }
+
+    @Test
+    fun alertaQueCaeManianaLoDice() {
+        val base = informeDe(ejemplo())
+        val tarde = base.copy(generado = ZonedDateTime.of(2026, 11, 7, 22, 30, 0, 0, ZONA_NOGOYA))
+        val alerta = construirAlerta(tarde)!!
+        assertEquals("tormenta|2026-11-08", alerta.clave)
+        assertTrue(alerta.contenido.resumen.contains("(mañana)"))
+    }
+
+    @Test
+    fun mismoEventoMismaClave() {
+        val a = construirAlerta(informeDe(ejemplo()))!!
+        val b = construirAlerta(informeDe(ejemplo()))!!
+        assertEquals(a.clave, b.clave)
     }
 }

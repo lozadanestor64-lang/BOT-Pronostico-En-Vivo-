@@ -27,3 +27,20 @@ fun compartirTexto(contexto: Context, texto: String) {
     if (contexto !is Activity) selector.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     contexto.startActivity(selector)
 }
+
+/**
+ * Abre WhatsApp (o WhatsApp Business) con su intent de lanzamiento normal de Android.
+ * Solo abre la aplicación: no escribe, no pega ni publica nada. El Estado lo publica la persona a mano.
+ */
+fun abrirWhatsApp(contexto: Context): Boolean {
+    val gestor = contexto.packageManager
+    val intento = gestor.getLaunchIntentForPackage("com.whatsapp")
+        ?: gestor.getLaunchIntentForPackage("com.whatsapp.w4b")
+    if (intento == null) {
+        Toast.makeText(contexto, "WhatsApp no está instalado", Toast.LENGTH_SHORT).show()
+        return false
+    }
+    intento.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    contexto.startActivity(intento)
+    return true
+}

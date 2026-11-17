@@ -7,7 +7,7 @@ from typing import Any
 
 from .config import ZONA
 from .errores import ErrorDatos
-from .modelos import Actual, DiaHoy, HoraPronostico, Pronostico
+from .modelos import Actual, DiaHoy, DiaPrevisto, HoraPronostico, Pronostico
 from .validacion import limpiar_numero, validar_estructura, validar_frescura
 
 _PUNTOS = (
@@ -109,8 +109,10 @@ def procesar(crudo: dict, ahora: datetime | None = None) -> Pronostico:
     uv_max = _serie(daily, "uv_index_max", nd, adv)
     prec_dia = _serie(daily, "precipitation_sum", nd, adv)
     prob_dia = _serie(daily, "precipitation_probability_max", nd, adv)
+    cod_dia = _serie(daily, "weather_code", nd, adv)
 
     hoy = DiaHoy()
+    dias: list[DiaPrevisto] = []
     if ahora.date() in fechas:
         i = fechas.index(ahora.date())
         hoy = DiaHoy(
@@ -118,6 +120,11 @@ def procesar(crudo: dict, ahora: datetime | None = None) -> Pronostico:
             amanecer=sol[fechas[i]][0], atardecer=sol[fechas[i]][1],
             uv_max=uv_max[i], precipitacion_mm=prec_dia[i], prob_lluvia_max=prob_dia[i],
         )
+        for k in range(i + 1, min(i + 7, nd)):
+            dias.append(DiaPrevisto(
+                fecha=fechas[k], maxima=maximas[k], minima=minimas[k], prob_lluvia=prob_dia[k],
+                precipitacion_mm=prec_dia[k], codigo=_codigo(cod_dia[k]),
+            ))
     else:
         adv.append("La respuesta no incluye el día de hoy en 'daily'")
 
@@ -169,4 +176,4 @@ def procesar(crudo: dict, ahora: datetime | None = None) -> Pronostico:
     if len(proximas) < 24:
         adv.append(f"Solo hay {len(proximas)} de 24 horas futuras disponibles")
 
-    return Pronostico(generado=ahora, actual=actual, hoy=hoy, horas=proximas, advertencias=adv)
+    return Pronostico(generado=ahora, actual=actual, hoy=hoy, horas=proximas, advertencias=adv, dias=dias)

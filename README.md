@@ -2,8 +2,10 @@
 
 Genera cada 3 horas un pronóstico de **Nogoyá, Entre Ríos** con datos de [Open-Meteo](https://open-meteo.com/), en un texto con formato WhatsApp listo para **copiar y publicar manualmente**.
 
-> ## 🚫 Este programa NUNCA entra a WhatsApp
-> No usa Baileys, whatsapp-web.js, Selenium, Playwright, WhatsApp Web, QR, clientes no oficiales ni ningún método para publicar estados de forma automática. Solo escribe un archivo de texto. **Vos copiás y publicás a mano.** Una prueba automática (`tests/test_sin_whatsapp.py`) verifica que el código no contenga nada de eso y que solo `cliente_api.py` acceda a la red.
+> ## 🚫 WhatsApp: nada automático
+> **El motor Python nunca entra a WhatsApp**: solo escribe un archivo de texto. No hay Baileys, whatsapp-web.js, Selenium, Playwright, WhatsApp Web, QR, clientes no oficiales ni publicación automática de Estados, y una prueba automática (`tests/test_sin_whatsapp.py`) lo vigila.
+>
+> **La app Android**, solo si tú lo dejas activado (interruptor ⚙️ → "Abrir WhatsApp después de copiar"), abre WhatsApp con el mecanismo normal de Android cuando tocas **Copiar**. **Solo abre la aplicación**: no escribe, no pega ni publica nada. El Estado lo pegas y publicas **tú, a mano**.
 
 ## Qué incluye el mensaje
 
@@ -47,6 +49,22 @@ App nativa (Kotlin + Jetpack Compose) en `android/`. **No genera el pronóstico:
 - Sin conexión muestra la última copia guardada, marcada con su antigüedad; nunca la presenta como actual si está vencida.
 - Si cambias el nombre del repo o la rama, edita `urlLatest` en `android/app/build.gradle.kts`.
 
+### ✂️ Versión corta para el Estado
+
+El texto completo mide unos 1.500 caracteres y, según creo, el Estado de texto de WhatsApp admite unos 700 (compruébalo en tu teléfono). El botón **Copiar corto** genera una versión de unos 400 caracteres con lo esencial: clima actual, viento, lluvia, tormentas y una hora cada tres. Si no entrara, la app quita detalle (chaparrones y horas intermedias), nunca inventa datos. **Copiar completo** sigue copiando todo el texto.
+
+### ⛈️ Alertas de lluvia y tormenta
+
+Además del aviso de pronóstico nuevo, la app envía una **alerta aparte** (canal propio, para poder silenciarla por separado) cuando en las **próximas 6 horas** el pronóstico trae tormenta o probabilidad de lluvia de 60 % o más. Se avisa una sola vez por evento. De 23:00 a 06:00 llega en silencio. Se activa junto con los avisos (⚙️ → "Avisos y alertas de lluvia").
+
+### 📈 Gráfico de 24 horas
+
+Línea de temperatura, barras con la probabilidad de lluvia de cada hora y una raya vertical donde cambia el día.
+
+### 🧩 Widget
+
+Mantén presionada la pantalla de inicio → **Widgets** → **Pronóstico Nogoyá**. Muestra temperatura, clima, lluvia y hasta cuándo vale el pronóstico. Si el informe está vencido, lo dice en rojo ("VENCIDO") y no lo presenta como actual. Se actualiza solo en segundo plano.
+
 ### 📅 Hoy y mañana
 
 Las 24 horas cruzan la medianoche, así que el texto las separa por día (`*Hoy · Lun 09/11*` y `*Mañana · Mar 10/11*`) y los horarios de lluvia y tormentas llevan el día (`mañana 20h–21h`). En la app, cada tarjeta de hora indica "Hoy" o "Mañana". El texto termina con la fuente de los datos: Open-Meteo.com.
@@ -54,6 +72,14 @@ Las 24 horas cruzan la medianoche, así que el texto las separa por día (`*Hoy 
 ### ¿Por qué mi app del clima muestra otros porcentajes?
 
 Cada servicio usa modelos y fuentes distintos, y la **probabilidad de lluvia** es el dato que más cambia de uno a otro. Esta app muestra tal cual lo que entrega Open-Meteo; no lo corrige ni lo mezcla. No hay una fuente "correcta": conviene comparar varios días contra lo que realmente ocurre.
+
+### 🧪 Comparación de modelos y próximos días
+
+- El pronóstico principal sale de Open-Meteo con su modelo automático. Aparte, el motor consulta por separado **cuatro modelos** (ECMWF, GFS, ICON y GEM) solo para la **lluvia**. Para cada uno calcula en qué horas llovería (desde 0,3 mm por hora) y cuántos mm, y muestra dónde coinciden **más de la mitad**. Si no coinciden, lo dice (`⚠️ Sin acuerdo entre modelos`). La app lo muestra en la tarjeta "Comparación de modelos".
+- Esta consulta es **información de apoyo**: si falla, o si hay menos de 2 modelos con datos, el bloque simplemente no aparece y el pronóstico sale igual. En el registro de GitHub Actions se ve qué modelos respondieron.
+- **No hace "más correcto" el pronóstico**: muestra cuánta incertidumbre hay. Cuando los modelos coinciden en el horario, hay más confianza; cuando no, conviene tomar el horario con cautela.
+- **Próximos días:** las siguientes seis jornadas con máxima, mínima, probabilidad y milímetros de lluvia.
+- No se usan datos de la app de clima del teléfono (no hay forma legítima de leerlos). Si en el futuro se quiere contrastar con otra fuente, se puede sumar una con clave gratuita guardada como secreto de GitHub.
 
 ### 🔔 Avisos con notificación
 

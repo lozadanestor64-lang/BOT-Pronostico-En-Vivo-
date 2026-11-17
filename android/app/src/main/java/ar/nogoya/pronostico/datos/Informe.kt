@@ -46,6 +46,10 @@ data class Informe(
     val amanecer: String?,
     val atardecer: String?,
     val horas: List<HoraPrevista>,
+    /** Líneas del bloque "MODELOS" (cada modelo y dónde coinciden). Vacío si no hubo comparación. */
+    val modelos: List<String> = emptyList(),
+    /** Líneas del bloque "PRÓXIMOS DÍAS" (una por día). */
+    val dias: List<String> = emptyList(),
 )
 
 enum class Vigencia { VIGENTE, VENCIDO }

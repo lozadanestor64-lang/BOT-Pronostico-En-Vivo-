@@ -9,6 +9,7 @@ import ar.nogoya.pronostico.datos.Carga
 import ar.nogoya.pronostico.datos.FuenteHttp
 import ar.nogoya.pronostico.datos.Repositorio
 import ar.nogoya.pronostico.datos.ResultadoLatest
+import ar.nogoya.pronostico.widget.PronosticoWidget
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,6 +34,7 @@ class PronosticoViewModel(application: Application) : AndroidViewModel(applicati
         almacen = AlmacenPrefs(application),
     )
 
+    private val app: Application = application
     private val _estado = MutableStateFlow(UiEstado())
     val estado: StateFlow<UiEstado> = _estado.asStateFlow()
 
@@ -64,6 +66,7 @@ class PronosticoViewModel(application: Application) : AndroidViewModel(applicati
                     is Carga.Fallo -> actual.copy(cargando = false, aviso = null, error = carga.mensaje)
                 }
             }
+            PronosticoWidget.refrescarTodos(app)
         }
     }
 }

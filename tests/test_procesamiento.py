@@ -162,3 +162,42 @@ def test_hora_actual_en_utc_se_normaliza_a_cordoba(crudo):
     p = procesar(crudo, en_utc)
     assert p.generado.hour == 15
     assert p.generado.tzinfo == ZONA
+
+
+# ---------- Próximos días ----------
+
+def _extender_a_siete_dias(crudo):
+    from datetime import date, timedelta
+
+    d = crudo["daily"]
+    base = date(2026, 11, 7)
+    d["time"] = [(base + timedelta(days=i)).isoformat() for i in range(7)]
+    d["temperature_2m_max"] = [30.0 + i for i in range(7)]
+    d["temperature_2m_min"] = [15.0 + i for i in range(7)]
+    d["sunrise"] = [f"{x}T05:52" for x in d["time"]]
+    d["sunset"] = [f"{x}T19:34" for x in d["time"]]
+    d["uv_index_max"] = [9.0] * 7
+    d["precipitation_sum"] = [0.0, 2.5, 0.0, 1.0, 0.0, 30.0, 0.0]
+    d["precipitation_probability_max"] = [60, 20, 10, 40, 5, 90, 0]
+    d["weather_code"] = [95, 1, 2, 3, 0, 65, 0]
+
+
+def test_proximos_dias_con_el_fixture(crudo, ahora):
+    dias = procesar(crudo, ahora).dias
+    assert len(dias) == 1
+    assert dias[0].fecha.isoformat() == "2026-11-08"
+    assert (dias[0].maxima, dias[0].minima, dias[0].prob_lluvia, dias[0].codigo) == (29.0, 16.8, 10, 1)
+
+
+def test_proximos_dias_son_como_mucho_seis(crudo, ahora):
+    _extender_a_siete_dias(crudo)
+    dias = procesar(crudo, ahora).dias
+    assert [d.fecha.day for d in dias] == [8, 9, 10, 11, 12, 13]
+    assert dias[4].prob_lluvia == 90 and dias[4].codigo == 65 and dias[4].precipitacion_mm == 30.0
+
+
+def test_proximos_dias_sin_weather_code_diario(crudo, ahora):
+    del crudo["daily"]["weather_code"]
+    p = procesar(crudo, ahora)
+    assert p.dias[0].codigo is None
+    assert any("weather_code" in a for a in p.advertencias)

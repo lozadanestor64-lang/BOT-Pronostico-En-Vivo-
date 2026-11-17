@@ -12,6 +12,10 @@ internal fun ejemplo(): String =
     ParserLatestTest::class.java.getResourceAsStream("/ejemplo_latest.txt")!!
         .bufferedReader(Charsets.UTF_8).readText()
 
+internal fun ejemploConModelos(): String =
+    ParserLatestTest::class.java.getResourceAsStream("/ejemplo_latest_modelos.txt")!!
+        .bufferedReader(Charsets.UTF_8).readText()
+
 internal val AHORA: ZonedDateTime = ZonedDateTime.of(2026, 11, 7, 15, 10, 0, 0, ZONA_NOGOYA)
 
 internal fun informeDe(texto: String, ahora: ZonedDateTime = AHORA): Informe {
@@ -86,6 +90,37 @@ class ParserLatestTest {
         assertTrue(horas.last().dia!!.startsWith("Mañana"))
         assertEquals(8, horas.count { it.dia!!.startsWith("Hoy") })
         assertEquals(16, horas.count { it.dia!!.startsWith("Mañana") })
+    }
+
+    @Test
+    fun leeLosProximosDias() {
+        val i = informeDe(ejemplo())
+        assertEquals(1, i.dias.size)
+        assertTrue(i.dias[0].startsWith("Dom 08/11"))
+        assertTrue(i.dias[0].contains("29°/17°"))
+        assertTrue(i.modelos.isEmpty()) // sin comparación de modelos no hay bloque
+    }
+
+    @Test
+    fun leeLaComparacionDeModelos() {
+        val i = informeDe(ejemploConModelos())
+        assertEquals(4, i.modelos.size)
+        assertTrue(i.modelos[0].startsWith("ECMWF"))
+        assertTrue(i.modelos[1].startsWith("GFS"))
+        assertTrue(i.modelos[2].startsWith("ICON"))
+        assertTrue(i.modelos[3].contains("mañana 01h–04h"))
+    }
+
+    @Test
+    fun elBloqueDeModelosNoSeConfundeConLaLluvia() {
+        val i = informeDe(ejemploConModelos())
+        assertEquals(60, i.probLluviaMax)
+        assertEquals(2.8, i.lluviaMm!!, 0.001)
+        assertEquals("hoy 18h–19h (1,5 mm)", i.chaparrones)
+        assertEquals("hoy 19h–20h", i.tormentas)
+        assertEquals(24, i.horas.size)
+        assertEquals("05:52", i.amanecer)
+        assertEquals(1, i.dias.size)
     }
 
     @Test

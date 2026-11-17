@@ -7,6 +7,7 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,6 +33,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Switch
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -46,8 +48,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -64,8 +69,10 @@ import ar.nogoya.pronostico.datos.Vigencia
 import ar.nogoya.pronostico.datos.ZONA_NOGOYA
 import ar.nogoya.pronostico.datos.edad
 import ar.nogoya.pronostico.datos.formatearDuracion
+import ar.nogoya.pronostico.datos.construirTextoCorto
 import ar.nogoya.pronostico.datos.formatoNumero
 import ar.nogoya.pronostico.datos.vigencia
+import ar.nogoya.pronostico.widget.PronosticoWidget
 import kotlinx.coroutines.delay
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -93,6 +100,8 @@ fun PantallaPrincipal(vm: PronosticoViewModel = viewModel()) {
     // --- Avisos de pronóstico nuevo (notificación) ---
     val prefs = remember { Preferencias(contexto) }
     var avisos by remember { mutableStateOf(prefs.avisosActivados) }
+    var abrirWa by remember { mutableStateOf(prefs.abrirWhatsApp) }
+    var ajustes by remember { mutableStateOf(false) }
     val pedirPermiso = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
         if (concedido) {
             prefs.avisosActivados = true
@@ -123,7 +132,8 @@ fun PantallaPrincipal(vm: PronosticoViewModel = viewModel()) {
     fun desactivarAvisos() {
         prefs.avisosActivados = false
         avisos = false
-        ProgramadorAvisos.cancelar(contexto)
+        // El widget también necesita la revisión periódica: solo se cancela si no hay widgets.
+        if (!PronosticoWidget.hayWidgets(contexto)) ProgramadorAvisos.cancelar(contexto)
     }
     LaunchedEffect(Unit) {
         if (!prefs.inicializado) {
@@ -139,13 +149,19 @@ fun PantallaPrincipal(vm: PronosticoViewModel = viewModel()) {
     val horizontal = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     // Copiar y compartir se revalidan al tocar: nunca se publica un informe vencido.
-    fun conInformeVigente(accion: (String) -> Unit) {
+    fun conInformeVigente(accion: (Informe) -> Unit) {
         val actual = informe
         if (actual != null && actual.vigencia(ZonedDateTime.now(ZONA_NOGOYA)) == Vigencia.VIGENTE) {
-            accion(actual.textoOriginal)
+            accion(actual)
         } else {
             Toast.makeText(contexto, "El informe está vencido. Actualiza primero.", Toast.LENGTH_LONG).show()
         }
+    }
+
+    // Copia y, si el ajuste está activo, abre WhatsApp (solo lo abre; la persona pega y publica).
+    fun copiarYAbrir(texto: String) {
+        copiarTexto(contexto, texto)
+        if (abrirWa) abrirWhatsApp(contexto)
     }
 
     CompositionLocalProvider(LocalContentColor provides Color.White) {
@@ -156,8 +172,19 @@ fun PantallaPrincipal(vm: PronosticoViewModel = viewModel()) {
                 .systemBarsPadding()
         ) {
             Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-                Encabezado(informe)
-                FilaAvisos(avisos) { marcado -> if (marcado) activarAvisos() else desactivarAvisos() }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Box(Modifier.weight(1f)) { Encabezado(informe) }
+                    TextButton(onClick = { ajustes = !ajustes }) { Text("⚙️", fontSize = 22.sp) }
+                }
+                if (ajustes) {
+                    FilaAjuste("🔔 Avisos y alertas de lluvia", avisos) { marcado ->
+                        if (marcado) activarAvisos() else desactivarAvisos()
+                    }
+                    FilaAjuste("📲 Abrir WhatsApp después de copiar", abrirWa) { marcado ->
+                        abrirWa = marcado
+                        prefs.abrirWhatsApp = marcado
+                    }
+                }
                 if (estado.cargando) {
                     LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 4.dp))
                 }
@@ -169,8 +196,9 @@ fun PantallaPrincipal(vm: PronosticoViewModel = viewModel()) {
                     hayInforme = informe != null,
                     puedePublicar = vigente,
                     onActualizar = { vm.actualizar() },
-                    onCopiar = { conInformeVigente { texto -> copiarTexto(contexto, texto) } },
-                    onCompartir = { conInformeVigente { texto -> compartirTexto(contexto, texto) } },
+                    onCopiarCorto = { conInformeVigente { i -> copiarYAbrir(construirTextoCorto(i)) } },
+                    onCopiarCompleto = { conInformeVigente { i -> copiarYAbrir(i.textoOriginal) } },
+                    onCompartir = { conInformeVigente { i -> compartirTexto(contexto, i.textoOriginal) } },
                 )
             }
         }
@@ -221,7 +249,10 @@ private fun Contenido(estado: UiEstado, informe: Informe?, ahora: ZonedDateTime,
                     ) {
                         Metricas(informe, 3)
                         TarjetaLluvia(informe)
+                        TarjetaModelos(informe)
                         FranjaHoras(informe.horas)
+                        GraficoHoras(informe.horas)
+                        TarjetaDias(informe)
                     }
                 }
             } else {
@@ -233,8 +264,11 @@ private fun Contenido(estado: UiEstado, informe: Informe?, ahora: ZonedDateTime,
                     Hero(informe, informe.vigencia(ahora) != Vigencia.VIGENTE)
                     Metricas(informe, 2)
                     TarjetaLluvia(informe)
+                    TarjetaModelos(informe)
                     TarjetaSol(informe)
                     FranjaHoras(informe.horas)
+                    GraficoHoras(informe.horas)
+                    TarjetaDias(informe)
                     Spacer(Modifier.height(8.dp))
                 }
             }
@@ -509,51 +543,164 @@ private fun BarraAcciones(
     hayInforme: Boolean,
     puedePublicar: Boolean,
     onActualizar: () -> Unit,
-    onCopiar: () -> Unit,
+    onCopiarCorto: () -> Unit,
+    onCopiarCompleto: () -> Unit,
     onCompartir: () -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
+    Column(
+        Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
                 onClick = onActualizar,
                 enabled = !cargando,
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(horizontal = 6.dp),
-            ) { Text("🔄 Actualizar", fontSize = 13.sp, maxLines = 1) }
-            FilledTonalButton(
-                onClick = onCopiar,
-                enabled = puedePublicar,
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(horizontal = 6.dp),
-            ) { Text("📋 Copiar", fontSize = 13.sp, maxLines = 1) }
+            ) { Text("🔄 Actualizar", fontSize = 14.sp, maxLines = 1) }
             FilledTonalButton(
                 onClick = onCompartir,
                 enabled = puedePublicar,
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(horizontal = 6.dp),
-            ) { Text("📤 Compartir", fontSize = 13.sp, maxLines = 1) }
+            ) { Text("📤 Compartir", fontSize = 14.sp, maxLines = 1) }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilledTonalButton(
+                onClick = onCopiarCorto,
+                enabled = puedePublicar,
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(horizontal = 6.dp),
+            ) { Text("📝 Copiar corto", fontSize = 14.sp, maxLines = 1) }
+            FilledTonalButton(
+                onClick = onCopiarCompleto,
+                enabled = puedePublicar,
+                modifier = Modifier.weight(1f),
+                contentPadding = PaddingValues(horizontal = 6.dp),
+            ) { Text("📋 Copiar completo", fontSize = 14.sp, maxLines = 1) }
         }
         if (hayInforme && !puedePublicar) {
             Text(
                 "Copiar y Compartir se activan solo con un informe vigente.",
                 fontSize = 12.sp,
-                modifier = Modifier.padding(top = 6.dp).alpha(0.7f),
+                modifier = Modifier.alpha(0.7f),
             )
         }
     }
 }
 
 @Composable
-private fun FilaAvisos(activado: Boolean, alCambiar: (Boolean) -> Unit) {
+private fun FilaAjuste(texto: String, activado: Boolean, alCambiar: (Boolean) -> Unit) {
     Row(
         Modifier.fillMaxWidth().padding(bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            "🔔 Avisarme con cada pronóstico nuevo",
-            fontSize = 14.sp,
-            modifier = Modifier.weight(1f).alpha(0.85f),
-        )
+        Text(texto, fontSize = 14.sp, modifier = Modifier.weight(1f).alpha(0.9f))
         Switch(checked = activado, onCheckedChange = alCambiar)
     }
 }
+
+@Composable
+private fun GraficoHoras(horas: List<HoraPrevista>) {
+    val temperaturas = horas.mapNotNull { it.temperatura }
+    if (horas.size < 2 || temperaturas.isEmpty()) return
+    val minimo = temperaturas.min()
+    val maximo = temperaturas.max()
+    Tarjeta {
+        Text("📈 Temperatura y lluvia · 24 h", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Canvas(Modifier.fillMaxWidth().height(150.dp)) {
+            val ancho = size.width
+            val alto = size.height
+            val zonaLinea = alto * 0.68f
+            val margen = 12f
+            val margenX = 10f
+            val rango = (maximo - minimo).coerceAtLeast(1).toFloat()
+            val paso = (ancho - 2 * margenX) / (horas.size - 1)
+
+            fun xDe(indice: Int): Float = margenX + indice * paso
+            fun yDe(t: Int): Float = zonaLinea - margen - (t - minimo) / rango * (zonaLinea - 2 * margen)
+
+            // Barras: probabilidad de lluvia de cada hora
+            val alturaBarras = alto - zonaLinea - 4f
+            val anchoBarra = paso * 0.6f
+            horas.forEachIndexed { indice, hora ->
+                val prob = (hora.probLluvia ?: 0).coerceIn(0, 100)
+                val altoBarra = alturaBarras * prob / 100f
+                drawRect(
+                    color = AZUL.copy(alpha = 0.55f),
+                    topLeft = Offset(xDe(indice) - anchoBarra / 2f, alto - altoBarra),
+                    size = Size(anchoBarra, altoBarra),
+                )
+            }
+
+            // Separador entre hoy y mañana
+            horas.forEachIndexed { indice, hora ->
+                if (indice > 0 && hora.dia != horas[indice - 1].dia) {
+                    val x = xDe(indice) - paso / 2f
+                    drawLine(
+                        color = Color.White.copy(alpha = 0.35f),
+                        start = Offset(x, 0f),
+                        end = Offset(x, alto),
+                        strokeWidth = 2f,
+                    )
+                }
+            }
+
+            // Línea de temperatura
+            for (indice in 0 until horas.size - 1) {
+                val a = horas[indice].temperatura
+                val b = horas[indice + 1].temperatura
+                if (a != null && b != null) {
+                    drawLine(
+                        color = AMBAR_CLARO,
+                        start = Offset(xDe(indice), yDe(a)),
+                        end = Offset(xDe(indice + 1), yDe(b)),
+                        strokeWidth = 5f,
+                        cap = StrokeCap.Round,
+                    )
+                }
+            }
+            horas.forEachIndexed { indice, hora ->
+                hora.temperatura?.let { t ->
+                    drawCircle(color = AMBAR_CLARO, radius = 5f, center = Offset(xDe(indice), yDe(t)))
+                }
+            }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(etiquetaHora(horas.first()), fontSize = 12.sp, modifier = Modifier.alpha(0.75f))
+            Text("Mín $minimo° · Máx $maximo°", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Text(etiquetaHora(horas.last()), fontSize = 12.sp, modifier = Modifier.alpha(0.75f))
+        }
+        Text(
+            "Línea: temperatura · Barras: probabilidad de lluvia · Raya vertical: cambio de día",
+            fontSize = 11.sp,
+            modifier = Modifier.alpha(0.6f),
+        )
+    }
+}
+
+private fun etiquetaHora(hora: HoraPrevista): String =
+    "${etiquetaCorta(hora.dia)} ${hora.hora.toString().padStart(2, '0')}h".trim()
+
+@Composable
+private fun TarjetaLista(titulo: String, lineas: List<String>, pie: String? = null) {
+    if (lineas.isEmpty()) return
+    Tarjeta {
+        Text(titulo, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        lineas.forEach { linea -> Text(linea, fontSize = 14.sp) }
+        if (pie != null) Text(pie, fontSize = 11.sp, modifier = Modifier.alpha(0.6f))
+    }
+}
+
+@Composable
+private fun TarjetaModelos(informe: Informe) = TarjetaLista(
+    titulo = "🧪 Comparación de modelos · lluvia",
+    lineas = informe.modelos,
+    pie = "Cada modelo de pronóstico por separado. Si coinciden, hay más confianza en el horario.",
+)
+
+@Composable
+private fun TarjetaDias(informe: Informe) = TarjetaLista(
+    titulo = "📆 Próximos días",
+    lineas = informe.dias,
+)

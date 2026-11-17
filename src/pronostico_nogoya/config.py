@@ -36,8 +36,17 @@ VARIABLES_HORARIAS = (
 )
 VARIABLES_DIARIAS = (
     "temperature_2m_max", "temperature_2m_min", "sunrise", "sunset",
-    "uv_index_max", "precipitation_sum", "precipitation_probability_max",
+    "uv_index_max", "precipitation_sum", "precipitation_probability_max", "weather_code",
 )
+
+# Modelos que se comparan solo para la lluvia (id de Open-Meteo -> nombre corto).
+MODELOS_COMPARACION = {
+    "ecmwf_ifs025": "ECMWF",
+    "gfs_seamless": "GFS",
+    "icon_seamless": "ICON",
+    "gem_seamless": "GEM",
+}
+UMBRAL_LLUVIA_MM = 0.3  # una hora cuenta como lluviosa desde este valor
 
 
 def parametros() -> dict[str, str | float | int]:
@@ -46,7 +55,7 @@ def parametros() -> dict[str, str | float | int]:
         "latitude": LATITUD,
         "longitude": LONGITUD,
         "timezone": ZONA_HORARIA,
-        "forecast_days": 2,
+        "forecast_days": 7,
         "timeformat": "iso8601",
         "temperature_unit": "celsius",
         "wind_speed_unit": "kmh",
@@ -54,4 +63,18 @@ def parametros() -> dict[str, str | float | int]:
         "current": ",".join(VARIABLES_ACTUALES),
         "hourly": ",".join(VARIABLES_HORARIAS),
         "daily": ",".join(VARIABLES_DIARIAS),
+    }
+
+
+def parametros_modelos() -> dict[str, str | float | int]:
+    """Consulta aparte (solo precipitación) para comparar modelos. Su fallo no afecta al pronóstico."""
+    return {
+        "latitude": LATITUD,
+        "longitude": LONGITUD,
+        "timezone": ZONA_HORARIA,
+        "forecast_days": 2,
+        "timeformat": "iso8601",
+        "precipitation_unit": "mm",
+        "hourly": "precipitation",
+        "models": ",".join(MODELOS_COMPARACION),
     }
