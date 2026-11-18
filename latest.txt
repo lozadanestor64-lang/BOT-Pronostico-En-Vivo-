@@ -1,11 +1,11 @@
 🌦️ *PRONÓSTICO NOGOYÁ EN VIVO*
-📅 Mié 18/11 · 🕒 00:46 hs
+📅 Mié 18/11 · 🕒 03:57 hs
 ━━━━━━━━━━━━━━━━
-🌙 *AHORA: Despejado*
-🌡️ *18°* · ST 20° · 🔺27° 🔻18°
-💧 86% · 🌫️ Rocío 16°
-📊 1007 hPa · 🟢 UV 0,0 (Bajo)
-👁️ 46 km · 💨 6 km/h O · 🌬️ ráf. 8
+☁️ *AHORA: Nublado*
+🌡️ *18°* · ST 19° · 🔺27° 🔻18°
+💧 85% · 🌫️ Rocío 16°
+📊 1006 hPa · 🟢 UV 0,0 (Bajo)
+👁️ 46 km · 💨 6 km/h OSO · 🌬️ ráf. 12
 ━━━━━━━━━━━━━━━━
 🌧️ *LLUVIA (24 h)*
 ☔ Prob. máx. 37% · 💦 1,9 mm
@@ -14,15 +14,14 @@
 🧪 *MODELOS · lluvia 24 h*
 ECMWF: sin lluvia
 GFS: sin lluvia
-ICON: sin lluvia
-GEM: sin lluvia
-✅ Todos coinciden: sin lluvia
+ICON: hoy 09h (0,3 mm)
+GEM: hoy 06h (0,4 mm)
+⚠️ Sin acuerdo entre modelos
 ━━━━━━━━━━━━━━━━
 🌅 05:48 · 🌇 19:40
 ━━━━━━━━━━━━━━━━
 ⏱️ *PRÓXIMAS 24 H*
 *Hoy · Mié 18/11*
-01h 🌙18° 0% · 02h ☁️18° 0% · 03h 🌙19° 0%
 04h ☁️18° 2% · 05h ☁️18° 5% · 06h ☁️19° 10%
 07h 🌦️19° 19% · 08h ⛅21° 30% · 09h ⛅23° 37%
 10h 🌦️25° 35% · 11h ☀️26° 29% · 12h 🌤️27° 24%
@@ -31,7 +30,8 @@ GEM: sin lluvia
 19h 🌤️24° 10% · 20h 🌙22° 5% · 21h 🌙21° 2%
 22h 🌙20° 1% · 23h ☁️19° 0%
 *Mañana · Jue 19/11*
-00h 🌙18° 0%
+00h 🌙18° 0% · 01h 🌙18° 0% · 02h 🌙17° 0%
+03h 🌙16° 0%
 _hora · clima · °C · % lluvia_
 ━━━━━━━━━━━━━━━━
 📆 *PRÓXIMOS DÍAS*
@@ -42,5 +42,5 @@ Dom 22/11 🌦️25°/15° · 💧73% · 1,7 mm
 Lun 23/11 ☁️27°/15° · 💧10%
 Mar 24/11 🌤️28°/15° · 💧10%
 ━━━━━━━━━━━━━━━━
-🔄 Datos 00:45 · ⏳ vigente hasta 03:46
+🔄 Datos 03:45 · ⏳ vigente hasta 06:57
 🌐 Fuente: Open-Meteo.com
